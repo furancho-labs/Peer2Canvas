@@ -52,6 +52,6 @@ The current manual harness uses the configured public MQTT signaling brokers and
 
 ## Evidence and limits
 
-For each run, record the commit, host and peer OS/WebView, topology class (same LAN or separate networks), signaling mode, peer count, ready/disconnected states, candidate **types** (not addresses), initial sync, accepted edit, reconnect result, host-loss result, elapsed times/bytes if available, and before/after SHA-256 of the synthetic host file.
+For each run, record the commit, host and peer OS/WebView, topology class (same LAN or separate networks), signaling mode, peer count, ready/disconnected states, the allowlisted `failureCode` from the sanitized report, candidate **types** (not addresses), initial sync, accepted edit, reconnect result, host-loss result, elapsed times/bytes if available, and before/after SHA-256 of the synthetic host file. Do not add raw exception messages.
 
 Never record IP addresses, SDP, room codes/passwords, invitation secrets, raw candidate strings, or document contents. The current harness prepares the initial connection, one edit, rejoin, graceful host-session close, and file-hash comparison. #37 also requires the remaining signaling/STUN failure, network-change, peer-limit, abrupt-process-loss, and TURN cases. Keep #37 open until the acceptance matrix is satisfied and evidence is added to ADR-0002.

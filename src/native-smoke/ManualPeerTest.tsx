@@ -17,6 +17,7 @@ import {
   parseManualSessionCode,
   type ManualSessionCode,
 } from "./manual-session-code";
+import { classifyManualSessionError } from "./manual-session-diagnostics";
 import "./manual-smoke.css";
 
 type Role = "host" | "participant";
@@ -27,6 +28,7 @@ type Report = {
   readyCount: number;
   revision: number | null;
   sha256: string | null;
+  failureCode: ReturnType<typeof classifyManualSessionError>;
   links: Array<{
     connectionState: RTCPeerConnectionState | null;
     iceConnectionState: RTCIceConnectionState | null;
@@ -74,6 +76,7 @@ export default function ManualPeerTest() {
           ? await crypto.subtle.digest("SHA-256", new TextEncoder().encode(serialized.value))
           : null;
         const links = (await transport.current?.getNetworkDiagnostics()) ?? [];
+        const failureCode = classifyManualSessionError(snapshot.error);
         if (mounted.current && session.current === current) {
           setReport({
             role: snapshot.role,
@@ -86,6 +89,7 @@ export default function ManualPeerTest() {
                   byte.toString(16).padStart(2, "0"),
                 ).join("")
               : null,
+            failureCode,
             links: links.map(
               ({
                 connectionState,
@@ -101,6 +105,8 @@ export default function ManualPeerTest() {
             ),
             ice: readNativeIceDiagnostics(),
           });
+          if (snapshot.status === "error" && failureCode)
+            setMessage(`Session error. Diagnostic: ${failureCode}.`);
         }
       } catch {
         if (mounted.current) setMessage("Cannot read the sanitized session report.");
@@ -193,16 +199,15 @@ export default function ManualPeerTest() {
         "Session started. Edits stay in memory; compare the revision and SHA-256 on both devices.",
       );
       hostStarted = role === "host";
-    } catch {
+    } catch (error: unknown) {
+      const failureCode = classifyManualSessionError(session.current?.getSnapshot().error ?? error);
       if (session.current) await session.current.close().catch(() => {});
       else await nextTransport?.close().catch(() => {});
       session.current = null;
       transport.current = null;
       if (mounted.current) {
         setRunning(false);
-        setMessage(
-          "Test session could not start. Check native WebRTC and network access, then retry.",
-        );
+        setMessage(`Test session could not start. Diagnostic: ${failureCode ?? "unknown"}.`);
       }
     } finally {
       if (role === "host" && !hostStarted) {
@@ -392,8 +397,8 @@ export default function ManualPeerTest() {
       <section aria-label="Sanitized session report">
         <h2>Sanitized report</h2>
         <p>
-          Role/status, counts, canonical revision, SHA-256, ICE types and states only. Refreshes
-          every second.
+          Role/status, counts, canonical revision, SHA-256, ICE types/states and allowlisted error
+          codes only. Refreshes every second.
         </p>
         <pre>{report ? JSON.stringify(report, null, 2) : "No active session report."}</pre>
       </section>

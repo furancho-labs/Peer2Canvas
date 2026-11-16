@@ -30,7 +30,7 @@ tauri-plugin-dialog = "=2.7.3"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tauri-plugin-wdio-webdriver = { version = "=1.5.1", optional = true }
-uuid = { version = "=1.29.1", features = ["v4"] }
+uuid = { version = "=1.29.2", features = ["v4"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 webkit2gtk = { version = "=2.0.2", features = ["v2_38"], optional = true }

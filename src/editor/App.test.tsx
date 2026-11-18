@@ -368,6 +368,53 @@ describe("in-memory model-backed editor", () => {
     expect(screen.queryByRole("alert")).toBeNull();
   });
 
+  it("groups the existing inspector fields under localized, non-redundant headings", () => {
+    render(<App />);
+    selectIdea();
+    const inspector = screen
+      .getByRole("heading", { name: t("editor.inspector.title") })
+      .closest(".pc-inspector") as HTMLElement;
+    const headings = within(inspector).getAllByRole("heading", { level: 3 });
+    expect(headings.map((heading) => heading.textContent)).toEqual([
+      t("editor.inspector.appearance"),
+      t("editor.inspector.moveGroup"),
+    ]);
+    // Names that already exist are not repeated as extra headings.
+    expect(
+      within(inspector).queryByRole("heading", { name: t("editor.inspector.text") }),
+    ).toBeNull();
+    expect(
+      within(inspector).getByRole("region", { name: t("editor.inspector.appearance") }),
+    ).toBeTruthy();
+    expect(
+      within(inspector).getByRole("group", { name: t("editor.inspector.moveGroup") }),
+    ).toBeTruthy();
+    expect(
+      within(inspector).getByRole("group", { name: t("editor.inspector.positionSize") }),
+    ).toBeTruthy();
+    // Keyboard order stays natural: text, geometry, Apply, Move, then the separated Delete.
+    const order = [
+      field("editor.inspector.text"),
+      field("editor.inspector.x"),
+      screen.getByRole("button", { name: t("editor.inspector.applyGeometry") }),
+      screen.getByRole("button", { name: t("editor.inspector.moveLeft") }),
+      screen.getByRole("button", { name: t("editor.inspector.deleteElement") }),
+    ];
+    for (let index = 1; index < order.length; index += 1) {
+      expect(
+        order[index - 1]!.compareDocumentPosition(order[index]!) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+    }
+    expect(
+      screen
+        .getByRole("button", { name: t("editor.inspector.deleteElement") })
+        .closest(".pc-inspector-danger"),
+    ).toBeTruthy();
+    // Every field is still reachable by its original label and no focus is moved by grouping.
+    expect(field("editor.inspector.width")).toBeTruthy();
+    expect(document.activeElement).not.toBe(field("editor.inspector.text"));
+  });
+
   it("keeps unsubmitted geometry drafts out of the document", () => {
     render(<App />);
     selectIdea();

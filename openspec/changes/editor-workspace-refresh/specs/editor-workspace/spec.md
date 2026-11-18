@@ -43,6 +43,12 @@ The workspace SHALL separate Shapes and Structure navigation and SHALL show supp
 - **THEN** each row shows a decorative preview, the localized name and category, and the approved license identifier
 - **AND** the approved attribution, source, and redistribution rights remain in the row's expandable details without changing the insertion control
 
+#### Scenario: Scan and operate grouped inspector fields
+
+- **WHEN** a node is selected
+- **THEN** the existing appearance, text, position-and-size, and move controls appear in visually grouped, accessibly named sections with the destructive Delete action separated last
+- **AND** every field and button shows a visible keyboard focus indicator in light and dark themes, and grouping does not move focus or change Apply, input guards, error association, or draft behavior
+
 #### Scenario: Navigate structure
 
 - **WHEN** the user selects Structure

@@ -979,8 +979,42 @@ kbd {
   flex-direction: column;
   gap: 8px;
 }
+.pc-inspector-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--pc-border);
+  border-radius: 8px;
+  background: var(--pc-surface);
+}
+.pc-group-title,
+.pc-inspector legend {
+  margin: 0;
+  padding: 0;
+  color: var(--pc-text-muted);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
 .pc-inspector legend {
   margin-bottom: 8px;
+}
+.pc-inspector-danger {
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--pc-danger-border);
+}
+/* Rings are the primary focus cue; groups never clip them (no overflow:hidden). */
+.pc-inspector input:focus-visible,
+.pc-inspector select:focus-visible,
+.pc-inspector .pc-btn:focus-visible {
+  outline: 2px solid var(--pc-focus);
+  outline-offset: 1px;
+}
+.pc-inspector-group:focus-within {
+  border-color: var(--pc-accent-fg);
 }
 .pc-geometry-grid {
   display: grid;

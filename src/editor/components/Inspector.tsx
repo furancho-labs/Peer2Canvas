@@ -104,33 +104,39 @@ export default function Inspector(props: Props) {
             )}
           </span>
         </p>
-        <dl className="pc-style-summary" aria-label={t("editor.inspector.appearance")}>
-          <dt>{t("editor.inspector.fill")}</dt>
-          <dd>
-            {selected.type === "text"
-              ? none
-              : selectedStyle
-                ? (selectedStyle.fill ?? none)
-                : defaultAppearance.fill}
-          </dd>
-          <dt>{t("editor.inspector.stroke")}</dt>
-          <dd>
-            {selected.type === "text"
-              ? none
-              : selectedStyle
-                ? (selectedStyle.stroke ?? none)
-                : defaultAppearance.stroke}
-          </dd>
-          <dt>{t("editor.inspector.strokeWidth")}</dt>
-          <dd>{formatNumber(selectedStyle?.strokeWidth ?? defaultAppearance.strokeWidth)}</dd>
-          <dt>{t("editor.inspector.textColor")}</dt>
-          <dd>{selectedStyle?.textColor ?? defaultAppearance.textColor}</dd>
-          <dt>{t("editor.inspector.fontSize")}</dt>
-          <dd>{formatNumber(selectedStyle?.fontSize ?? defaultAppearance.fontSize)}</dd>
-        </dl>
+        <section className="pc-inspector-group" aria-labelledby="inspector-appearance-heading">
+          <h3 id="inspector-appearance-heading" className="pc-group-title">
+            {t("editor.inspector.appearance")}
+          </h3>
+          <dl className="pc-style-summary">
+            <dt>{t("editor.inspector.fill")}</dt>
+            <dd>
+              {selected.type === "text"
+                ? none
+                : selectedStyle
+                  ? (selectedStyle.fill ?? none)
+                  : defaultAppearance.fill}
+            </dd>
+            <dt>{t("editor.inspector.stroke")}</dt>
+            <dd>
+              {selected.type === "text"
+                ? none
+                : selectedStyle
+                  ? (selectedStyle.stroke ?? none)
+                  : defaultAppearance.stroke}
+            </dd>
+            <dt>{t("editor.inspector.strokeWidth")}</dt>
+            <dd>{formatNumber(selectedStyle?.strokeWidth ?? defaultAppearance.strokeWidth)}</dd>
+            <dt>{t("editor.inspector.textColor")}</dt>
+            <dd>{selectedStyle?.textColor ?? defaultAppearance.textColor}</dd>
+            <dt>{t("editor.inspector.fontSize")}</dt>
+            <dd>{formatNumber(selectedStyle?.fontSize ?? defaultAppearance.fontSize)}</dd>
+          </dl>
+        </section>
+        {/* The "Text" label already names this group, so it gets no second heading. */}
         <form
           ref={textForm}
-          className="pc-section"
+          className="pc-section pc-inspector-group"
           onSubmit={(event) => {
             event.preventDefault();
             props.onApplyText(String(new FormData(event.currentTarget).get("text")));
@@ -149,7 +155,7 @@ export default function Inspector(props: Props) {
             {t("editor.inspector.applyText")}
           </button>
         </form>
-        <form ref={geometryForm} className="pc-section" onSubmit={applyGeometry}>
+        <form ref={geometryForm} className="pc-section pc-inspector-group" onSubmit={applyGeometry}>
           <fieldset>
             <legend>{t("editor.inspector.positionSize")}</legend>
             <div className="pc-geometry-grid">
@@ -174,33 +180,40 @@ export default function Inspector(props: Props) {
             </button>
           </fieldset>
         </form>
-        <div className="pc-move-controls" role="group" aria-label={t("editor.inspector.moveGroup")}>
-          {directions.map((direction) => (
-            <button
-              key={direction.label}
-              type="button"
-              className="pc-btn pc-icon-btn"
-              aria-label={t(direction.label)}
-              title={t(direction.label)}
-              onClick={() =>
-                props.onApplyGeometry({
-                  ...selected.geometry,
-                  x: selected.geometry.x + direction.x,
-                  y: selected.geometry.y + direction.y,
-                })
-              }
-            >
-              <span aria-hidden="true">{direction.glyph}</span>
-            </button>
-          ))}
+        <div className="pc-inspector-group" role="group" aria-labelledby="inspector-move-heading">
+          <h3 id="inspector-move-heading" className="pc-group-title">
+            {t("editor.inspector.moveGroup")}
+          </h3>
+          <div className="pc-move-controls">
+            {directions.map((direction) => (
+              <button
+                key={direction.label}
+                type="button"
+                className="pc-btn pc-icon-btn"
+                aria-label={t(direction.label)}
+                title={t(direction.label)}
+                onClick={() =>
+                  props.onApplyGeometry({
+                    ...selected.geometry,
+                    x: selected.geometry.x + direction.x,
+                    y: selected.geometry.y + direction.y,
+                  })
+                }
+              >
+                <span aria-hidden="true">{direction.glyph}</span>
+              </button>
+            ))}
+          </div>
         </div>
-        <button
-          type="button"
-          className="pc-btn pc-delete pc-btn--danger pc-btn--block"
-          onClick={props.onDelete}
-        >
-          {t("editor.inspector.deleteElement")}
-        </button>
+        <div className="pc-inspector-danger">
+          <button
+            type="button"
+            className="pc-btn pc-delete pc-btn--danger pc-btn--block"
+            onClick={props.onDelete}
+          >
+            {t("editor.inspector.deleteElement")}
+          </button>
+        </div>
       </>
     );
   }

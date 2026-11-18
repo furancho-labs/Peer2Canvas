@@ -62,6 +62,16 @@
 .manual-grid > * {
   min-width: 0;
 }
+.manual-steps {
+  margin: 8px 0;
+  padding-left: 22px;
+}
+.manual-steps li + li {
+  margin-top: 4px;
+}
+.manual-steps strong {
+  color: #78350f;
+}
 .manual-peer-test pre {
   padding: 16px;
   border: 1px solid #64748b;

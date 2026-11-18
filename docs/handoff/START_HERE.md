@@ -52,6 +52,8 @@ The desktop app supports a canonical diagram document, model-backed editing, sel
 
 This was a source promotion. It did not publish an installer, declare minimum supported OS versions, or establish release readiness. The macOS Cmd+Q path was not manually rechecked while the Mac was locked; risk R-13 records the remaining native quit-path uncertainty.
 
+The local `feature/editor-ui-polish` branch is ready for maintainer review. See the [editor verification record](../development/editor-workspace.md) for the browser matrix, the native draw.io overwrite check, and the separate narrow-layout renderer issue.
+
 ## Not implemented
 
 `main` remains at S3. `dev` contains the WP-07.1/.2 session and transport foundation but has no user-facing share/join controls; invitations, admission, roles, grouping, real assistant/provider calls, and MCP are not implemented in the product UI. The WP-13 workspace/preferences implementation is in `dev` through PR #132 but is not on `main` or released; its human Spanish review and native preference acceptance remain open. Delivered S3 behavior includes one reviewed first-party rectangle preview, offline search, safe SVG rendering, schema-v2 references, the asset/dependency license inventory, and the declared draw.io subset. Check live refs before describing availability. The app does not render connection labels on canvas or support page/layer deletion/reordering. Icon packaging remains open under WP-11.6/#90.

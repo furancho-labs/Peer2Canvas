@@ -3,29 +3,42 @@
   color: var(--pc-danger-text, #a12525);
   font-weight: 550;
 }
-.pc-drawio-preserved {
+/* Two sections with one shape: info tone for what is kept, warning tone for what is lost. */
+.pc-drawio-preserved,
+.pc-drawio-losses {
   padding: 10px 12px;
-  border: 1px solid var(--pc-info-border, #c4d8f1);
+  border: 1px solid;
   border-radius: 6px;
+}
+.pc-drawio-preserved {
+  border-color: var(--pc-info-border, #c4d8f1);
   background: var(--pc-accent-soft, #edf5ff);
   color: var(--pc-text, #28476a);
 }
 .pc-drawio-losses {
-  max-height: 220px;
-  overflow: auto;
+  border-color: var(--pc-warning-border);
+  background: var(--pc-warning-soft);
 }
+.pc-drawio-preserved h3,
 .pc-drawio-losses h3 {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 8px;
-  align-items: center;
   margin: 0 0 6px;
   font-size: 13px;
 }
-.pc-drawio-badge {
-  font-size: 11px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
+.pc-drawio-preserved p {
+  margin: 0;
+}
+.pc-drawio-losses h3 {
+  color: var(--pc-warning-text, #5d3f18);
+}
+/* Long lists scroll inside a focusable region so the keyboard can reach every entry. */
+.pc-drawio-loss-scroll {
+  max-height: min(220px, 30vh);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.pc-drawio-loss-scroll:focus-visible {
+  outline: 2px solid var(--pc-focus);
+  outline-offset: -2px;
 }
 .pc-drawio-losses ul {
   margin: 0;
@@ -34,4 +47,7 @@
   font-size: 12px;
   line-height: 1.5;
   overflow-wrap: anywhere;
+}
+.pc-drawio-losses li + li {
+  margin-top: 4px;
 }

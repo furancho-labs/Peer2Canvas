@@ -30,6 +30,12 @@ The workspace SHALL separate Shapes and Structure navigation and SHALL show supp
 - **WHEN** the user searches the Shapes panel
 - **THEN** approved matching shapes and expandable source/license information are available and insertion uses the existing shape command
 
+#### Scenario: Read a shape's provenance in the list
+
+- **WHEN** the Shapes panel lists an approved shape
+- **THEN** each row shows a decorative preview, the localized name and category, and the approved license identifier
+- **AND** the approved attribution, source, and redistribution rights remain in the row's expandable details without changing the insertion control
+
 #### Scenario: Navigate structure
 
 - **WHEN** the user selects Structure

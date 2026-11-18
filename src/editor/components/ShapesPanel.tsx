@@ -65,6 +65,7 @@ export default function ShapesPanel({ disabled, onAddShape }: Props) {
                   <span>
                     <strong>{name}</strong>
                     <small>{t("editor.shapes.meta", { category, version: entry.version })}</small>
+                    <small className="pc-shape-license">{entry.license.identifier}</small>
                   </span>
                 </button>
                 <details>

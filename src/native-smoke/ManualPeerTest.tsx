@@ -513,6 +513,16 @@ export default function ManualPeerTest() {
             Role/status, counts, canonical revision, SHA-256, ICE types/states and allowlisted error
             codes only. Refreshes every second.
           </p>
+          <dl className="manual-summary" aria-label="Report summary (test only)">
+            <dt>Status</dt>
+            <dd>{report?.status ?? "—"}</dd>
+            <dt>Revision</dt>
+            <dd>{report?.revision ?? "—"}</dd>
+            <dt>SHA-256</dt>
+            <dd>{report?.sha256 ? <code>{report.sha256}</code> : "—"}</dd>
+            <dt>Ready / total peers</dt>
+            <dd>{report ? `${report.readyCount}/${report.peerCount}` : "—"}</dd>
+          </dl>
           <pre>{report ? JSON.stringify(report, null, 2) : "No active session report."}</pre>
         </section>
       </div>

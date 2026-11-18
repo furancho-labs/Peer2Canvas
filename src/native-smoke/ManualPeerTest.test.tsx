@@ -99,7 +99,7 @@ function setSnapshot(
 }
 
 // Only setInterval is faked; crypto.subtle.digest resolves on a real thread, so wait in real time.
-const settle = () => new Promise<void>((resolve) => setTimeout(resolve, 25));
+const settle = () => new Promise<void>((resolve) => setTimeout(resolve, 10));
 
 async function tick() {
   await act(async () => {
@@ -341,6 +341,109 @@ describe("ManualPeerTest edit availability", () => {
     });
     expect(editButton().disabled).toBe(false);
     expect(reason()).toBeNull();
+  });
+});
+
+describe("ManualPeerTest report summary", () => {
+  const summary = () => {
+    const dl = document.querySelector("dl.manual-summary");
+    const rows: Record<string, string> = {};
+    dl?.querySelectorAll("dt").forEach((dt) => {
+      rows[dt.textContent ?? ""] = dt.nextElementSibling?.textContent ?? "";
+    });
+    return { dl, rows };
+  };
+
+  it("shows placeholders before a session and sits between the intro and the JSON", () => {
+    render(<ManualPeerTest />);
+    const { dl, rows } = summary();
+    expect(rows).toEqual({
+      Status: "—",
+      Revision: "—",
+      "SHA-256": "—",
+      "Ready / total peers": "—",
+    });
+    const pre = document.querySelector("pre");
+    const intro = screen.getByText(/Refreshes every second/);
+    expect(
+      intro.compareDocumentPosition(dl as Node) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(dl).not.toBeNull();
+    expect(pre).not.toBeNull();
+    expect(
+      (dl as Element).compareDocumentPosition(pre as Node) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it("matches the JSON report values, with the full digest and no credentials", async () => {
+    const model = createSample();
+    render(<ManualPeerTest />);
+    await joinAsPeer();
+    setSnapshot(latest(), {
+      status: "ready",
+      model,
+      peerCount: 3,
+      readyPeerCount: 2,
+    });
+    await settled(latest().snap.status, {
+      digest: Boolean(latest().snap.model),
+    });
+    const json = JSON.parse(document.querySelector("pre")?.textContent ?? "{}") as {
+      status: string;
+      revision: number;
+      sha256: string;
+      readyCount: number;
+      peerCount: number;
+    };
+    const { rows } = summary();
+    expect(json.sha256).toMatch(/^[0-9a-f]{64}$/);
+    expect(rows["SHA-256"]).toBe(json.sha256);
+    expect(rows["Status"]).toBe("ready");
+    expect(rows["Revision"]).toBe(String(model.revision));
+    expect(rows["Revision"]).toBe(String(json.revision));
+    expect(rows["Ready / total peers"]).toBe("2/3");
+    const text = document.querySelector("dl.manual-summary")?.textContent ?? "";
+    for (const secret of [ROOM, PASSWORD, CODE, "hostPeerId", "test-host-peer"]) {
+      expect(text).not.toContain(secret);
+    }
+  });
+
+  it("keeps the unchanged JSON field set and the test-only marker", async () => {
+    const { container } = render(<ManualPeerTest />);
+    await joinAsPeer();
+    setSnapshot(latest(), { status: "ready", model: createSample() });
+    await settled(latest().snap.status, {
+      digest: Boolean(latest().snap.model),
+    });
+    const json = JSON.parse(document.querySelector("pre")?.textContent ?? "{}") as object;
+    expect(Object.keys(json)).toEqual([
+      "role",
+      "status",
+      "peerCount",
+      "readyCount",
+      "revision",
+      "sha256",
+      "failureCode",
+      "links",
+      "ice",
+    ]);
+    expect(container.querySelector("main")?.getAttribute("data-native-manual")).toBe(
+      "__PEERCANVAS_NATIVE_MANUAL__",
+    );
+    expect(screen.getByRole("note").textContent).toContain("TEST ONLY");
+  });
+
+  it("clears the summary when the session closes", async () => {
+    render(<ManualPeerTest />);
+    await joinAsPeer();
+    setSnapshot(latest(), { status: "ready", model: createSample() });
+    await settled(latest().snap.status, {
+      digest: Boolean(latest().snap.model),
+    });
+    expect(summary().rows["Status"]).toBe("ready");
+    await click("Close session and clear code");
+    expect(summary().rows["Status"]).toBe("—");
+    expect(summary().rows["SHA-256"]).toBe("—");
   });
 });
 

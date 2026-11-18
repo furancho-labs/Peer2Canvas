@@ -91,6 +91,8 @@ The bounded WP-13 exception above is approved and locally implemented. Other S7â
 
 ## Next step
 
+Review the local `feature/s4-smoke-ui-polish` branch. The macOS host edit advanced the in-memory revision and preserved the saved fixture hash. The [native evidence](../architecture/decisions/ADR-0002-document-and-collaboration-model.md#manual-harness-ui-polish-evidence-2026-11-18) records the result and the pending two-device run. Resume that run when a separate Windows computer is available.
+
 Refresh live refs, PRs, issues, milestone, and Project Board. A first Macâ€“Windows attempt on the same Wi-Fi failed before either peer became ready. The manual harness now reports allowlisted failure categories; use the updated [Windows test guide](windows-s4-network-test.md) for one fresh attempt and record sanitized results in ADR-0002 and #37. Do not repeat the failed attempt unchanged. Complete the remaining signaling/STUN failure, external TURN, network-change, peer-limit, abrupt-host-loss, metrics, and durable-file cases when suitable networks and a TURN provider are available. Resolve production Linux peer compatibility before claiming cross-platform collaboration. Do not promote S4 to `main` or start WP-08/S5 until #37's acceptance matrix passes. Separately, #140's red-button and unsaved-document close paths, and WP-13's native preference/restart/menu checks and fluent Spanish review under #100/#101, remain open. At S4 closeout, explain the network test in plain Spanish without assuming networking expertise. Release PR #118 remains open for maintainer review and is unrelated to S4.
 
 Windows Codex guidance for the S4 network-test discussion: [windows-s4-network-test.md](windows-s4-network-test.md).

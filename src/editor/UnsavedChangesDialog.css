@@ -15,8 +15,17 @@
   overflow: auto;
 }
 .pc-drawio-losses h3 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  align-items: center;
   margin: 0 0 6px;
   font-size: 13px;
+}
+.pc-drawio-badge {
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 .pc-drawio-losses ul {
   margin: 0;

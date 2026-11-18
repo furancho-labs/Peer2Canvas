@@ -24,6 +24,12 @@ The system SHALL identify unsupported or lossy constructs before the user confir
 - **WHEN** an imported document contains a construct outside the declared supported subset
 - **THEN** the system presents a compatibility report and does not silently claim full fidelity
 
+#### Scenario: Consent names the loss
+
+- **WHEN** a draw.io review lists one or more known losses
+- **THEN** the review shows a localized count that uses the active language's plural forms, keeps one entry per reported loss in reported order, and labels the confirming action "Import with losses" or "Export with losses" (Spanish: "Importar con pérdidas" or "Exportar con pérdidas")
+- **AND** a review with no known losses keeps the plain import and export actions, Cancel receives initial focus, and Escape or Cancel changes neither the document nor the destination file
+
 #### Scenario: Export would lose content
 
 - **WHEN** exporting would omit or change supported source content

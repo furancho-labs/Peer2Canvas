@@ -62,7 +62,15 @@ export default function DrawioReviewDialog({ review, busy, onConfirm, onCancel }
             disabled={busy}
             onClick={() => void onConfirm()}
           >
-            {isImport ? t("documents.drawio.confirmImport") : t("documents.drawio.confirmExport")}
+            {t(
+              isImport
+                ? hasLosses
+                  ? "documents.drawio.confirmImportLoss"
+                  : "documents.drawio.confirmImport"
+                : hasLosses
+                  ? "documents.drawio.confirmExportLoss"
+                  : "documents.drawio.confirmExport",
+            )}
           </button>
         </>
       }
@@ -74,7 +82,12 @@ export default function DrawioReviewDialog({ review, busy, onConfirm, onCancel }
       )}
       {hasLosses ? (
         <section className="pc-drawio-losses" aria-labelledby="pc-drawio-losses-heading">
-          <h3 id="pc-drawio-losses-heading">{t("documents.drawio.lossesTitle")}</h3>
+          <h3 id="pc-drawio-losses-heading">
+            {t("documents.drawio.lossesTitle")}{" "}
+            <span className="pc-drawio-badge" id="pc-drawio-loss-count">
+              {t("documents.drawio.lossCount", { count: review.losses.length })}
+            </span>
+          </h3>
           <ul id="pc-drawio-loss-list">
             {review.losses.map((loss, index) => (
               <li key={`${index}-${loss}`}>{loss}</li>

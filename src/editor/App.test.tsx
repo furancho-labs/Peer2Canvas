@@ -1,4 +1,4 @@
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import type { ComponentProps } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import App from "../App";
@@ -39,6 +39,9 @@ vi.mock("../canvas/WeaveCanvas", () => ({
 // assertions can run against another locale's translator.
 const { t } = createTranslator("en");
 const rectangle = () => t("editor.shapes.add", { name: t("editor.defaults.rectangle") });
+
+const shapeLibrary = () =>
+  screen.getByRole("region", { name: new RegExp(t("editor.shapes.library")) });
 
 function snapshot() {
   return canvas.props!.document!;
@@ -140,6 +143,48 @@ describe("in-memory model-backed editor", () => {
     expect(nodes().at(-1)?.text).toBe(t("editor.defaults.rectangle"));
     fireEvent.change(search, { target: { value: "no such shape" } });
     expect(screen.getByText(t("editor.shapes.noMatches"))).toBeTruthy();
+    expect(within(shapeLibrary()).getByRole("status").textContent).toBe(
+      t("editor.shapes.echo", { count: 0, query: "no such shape" }),
+    );
+  });
+
+  it("echoes an unmatched query once, literally, and Clear search restores the list and focus", () => {
+    render(<App />);
+    showTab("shapes");
+    const search = screen.getByRole("searchbox", { name: t("editor.shapes.search") });
+    const hostile = "<b>{count}</b> & {query}";
+    fireEvent.change(search, { target: { value: `  ${hostile} ` } });
+    const message = t("editor.shapes.noMatches");
+    // The query appears exactly once in the panel: inside the single persistent live status.
+    const status = screen
+      .getAllByRole("status")
+      .filter((node) => node.textContent?.includes(hostile));
+    expect(status).toHaveLength(1);
+    expect(status[0]!.textContent).toBe(t("editor.shapes.echo", { count: 0, query: hostile }));
+    expect(status[0]!.querySelector("b")).toBeNull();
+    const library = status[0]!.closest("section")!;
+    expect(library.textContent!.split(hostile)).toHaveLength(2);
+    // The empty box is generic (so it stays narrow for any query) and is not live.
+    expect(screen.getByText(message).closest("[role=status]")).toBeNull();
+    expect(screen.getByText(message).textContent).not.toContain(hostile);
+    expect(screen.queryByRole("button", { name: rectangle() })).toBeNull();
+
+    const clear = screen.getByRole("button", { name: t("editor.shapes.clear") });
+    clear.focus();
+    fireEvent.click(clear);
+    expect((search as HTMLInputElement).value).toBe("");
+    expect(document.activeElement).toBe(search);
+    expect(screen.getByRole("button", { name: rectangle() })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: t("editor.shapes.clear") })).toBeNull();
+    expect(screen.queryByText(message)).toBeNull();
+    expect(within(shapeLibrary()).getByRole("status").textContent).toBe("");
+  });
+
+  it("localizes the query echo and the Clear search action in Spanish", () => {
+    const es = createTranslator("es");
+    expect(es.t("editor.shapes.clear")).toBe("Borrar búsqueda");
+    expect(es.t("editor.shapes.echo", { count: 1, query: "x" })).toBe("1 forma para «x»");
+    expect(es.t("editor.shapes.echo", { count: 0, query: "x" })).toBe("0 formas para «x»");
   });
 
   it("routes add, move, resize and delete through canonical commands", () => {
@@ -321,6 +366,53 @@ describe("in-memory model-backed editor", () => {
     expect(nodes()).toHaveLength(1);
     expect(canvas.props!.selection).toBe(nodes()[0].nodeId);
     expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it("groups the existing inspector fields under localized, non-redundant headings", () => {
+    render(<App />);
+    selectIdea();
+    const inspector = screen
+      .getByRole("heading", { name: t("editor.inspector.title") })
+      .closest(".pc-inspector") as HTMLElement;
+    const headings = within(inspector).getAllByRole("heading", { level: 3 });
+    expect(headings.map((heading) => heading.textContent)).toEqual([
+      t("editor.inspector.appearance"),
+      t("editor.inspector.moveGroup"),
+    ]);
+    // Names that already exist are not repeated as extra headings.
+    expect(
+      within(inspector).queryByRole("heading", { name: t("editor.inspector.text") }),
+    ).toBeNull();
+    expect(
+      within(inspector).getByRole("region", { name: t("editor.inspector.appearance") }),
+    ).toBeTruthy();
+    expect(
+      within(inspector).getByRole("group", { name: t("editor.inspector.moveGroup") }),
+    ).toBeTruthy();
+    expect(
+      within(inspector).getByRole("group", { name: t("editor.inspector.positionSize") }),
+    ).toBeTruthy();
+    // Keyboard order stays natural: text, geometry, Apply, Move, then the separated Delete.
+    const order = [
+      field("editor.inspector.text"),
+      field("editor.inspector.x"),
+      screen.getByRole("button", { name: t("editor.inspector.applyGeometry") }),
+      screen.getByRole("button", { name: t("editor.inspector.moveLeft") }),
+      screen.getByRole("button", { name: t("editor.inspector.deleteElement") }),
+    ];
+    for (let index = 1; index < order.length; index += 1) {
+      expect(
+        order[index - 1]!.compareDocumentPosition(order[index]!) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+    }
+    expect(
+      screen
+        .getByRole("button", { name: t("editor.inspector.deleteElement") })
+        .closest(".pc-inspector-danger"),
+    ).toBeTruthy();
+    // Every field is still reachable by its original label and no focus is moved by grouping.
+    expect(field("editor.inspector.width")).toBeTruthy();
+    expect(document.activeElement).not.toBe(field("editor.inspector.text"));
   });
 
   it("keeps unsubmitted geometry drafts out of the document", () => {

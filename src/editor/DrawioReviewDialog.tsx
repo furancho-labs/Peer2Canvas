@@ -39,7 +39,7 @@ export default function DrawioReviewDialog({ review, busy, onConfirm, onCancel }
       titleId="pc-drawio-title"
       descriptionId="pc-drawio-description"
       describedBy={
-        hasLosses ? "pc-drawio-description pc-drawio-loss-list" : "pc-drawio-description"
+        hasLosses ? "pc-drawio-description pc-drawio-loss-count" : "pc-drawio-description"
       }
       className="pc-unsaved-dialog"
       busy={busy}
@@ -62,25 +62,48 @@ export default function DrawioReviewDialog({ review, busy, onConfirm, onCancel }
             disabled={busy}
             onClick={() => void onConfirm()}
           >
-            {isImport ? t("documents.drawio.confirmImport") : t("documents.drawio.confirmExport")}
+            {t(
+              isImport
+                ? hasLosses
+                  ? "documents.drawio.confirmImportLoss"
+                  : "documents.drawio.confirmImport"
+                : hasLosses
+                  ? "documents.drawio.confirmExportLoss"
+                  : "documents.drawio.confirmExport",
+            )}
           </button>
         </>
       }
     >
       {review.preservedFragmentCount > 0 && (
-        <p className="pc-drawio-preserved" role="status">
-          {t("documents.drawio.preserved", { count: review.preservedFragmentCount })}
-        </p>
+        <div className="pc-drawio-preserved">
+          <h3>{t("documents.drawio.preservedTitle")}</h3>
+          <p role="status">
+            {t("documents.drawio.preserved", {
+              count: review.preservedFragmentCount,
+            })}
+          </p>
+        </div>
       )}
       {hasLosses ? (
-        <section className="pc-drawio-losses" aria-labelledby="pc-drawio-losses-heading">
-          <h3 id="pc-drawio-losses-heading">{t("documents.drawio.lossesTitle")}</h3>
-          <ul id="pc-drawio-loss-list">
-            {review.losses.map((loss, index) => (
-              <li key={`${index}-${loss}`}>{loss}</li>
-            ))}
-          </ul>
-        </section>
+        <div className="pc-drawio-losses">
+          <h3 id="pc-drawio-loss-count">
+            {t("documents.drawio.lossCount", { count: review.losses.length })}
+          </h3>
+          {/* Focusable so keyboard users can scroll a long list; the list itself stays a list. */}
+          <div
+            className="pc-drawio-loss-scroll"
+            role="region"
+            tabIndex={0}
+            aria-labelledby="pc-drawio-loss-count"
+          >
+            <ul id="pc-drawio-loss-list">
+              {review.losses.map((loss, index) => (
+                <li key={`${index}-${loss}`}>{loss}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
       ) : (
         <p>{t("documents.drawio.noLosses")}</p>
       )}

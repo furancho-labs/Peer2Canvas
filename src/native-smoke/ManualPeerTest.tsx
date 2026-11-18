@@ -292,116 +292,122 @@ export default function ManualPeerTest() {
       aria-busy={busy}
     >
       <h1>Manual cross-device peer test</h1>
-      <aside className="manual-warning" aria-label="Test-only security warning">
+      <aside className="manual-warning" role="note" aria-label="Test-only security warning">
         <strong>TEST ONLY — bearer code grants read/edit access.</strong>
         <p>
           Anyone holding the code can read and edit the synthetic in-memory fixture. This is not a
-          secure invitation: no S5 admission, roles, or expiry. Use trusted participants and no
-          personal documents.
-        </p>
-        <p>
-          Keep the code out of URLs, logs, reports, screenshots, and shared recordings. Only the
-          sanitized report below is suitable for evidence.
+          secure invitation: no S5 admission, roles, or expiry. Use trusted participants, synthetic
+          data and no personal documents. Keep the code out of URLs, logs, screenshots and
+          recordings; share only the sanitized report.
         </p>
       </aside>
-      <label htmlFor="manual-role">Test role</label>
-      <select
-        id="manual-role"
-        value={role}
-        disabled={busy || running}
-        onChange={(event) => {
-          setRole(event.target.value as Role);
-          setInvalidCode(false);
-        }}
-      >
-        <option value="host">Host</option>
-        <option value="participant">Peer</option>
-      </select>
-      {role === "host" ? (
-        <section aria-label="Host controls">
-          <p>
-            Save the initial synthetic sample to a test-only .peercanvas file. Hash that file before
-            and after the session; session edits are never auto-saved.
-          </p>
-          <button disabled={busy || running} onClick={() => void connect()}>
-            Save fixture and start host
-          </button>
-          {hostCode && (
-            <>
-              <button
-                disabled={busy}
-                aria-expanded={showCode}
-                aria-controls="manual-host-code"
-                onClick={() => setShowCode(!showCode)}
-              >
-                {showCode ? "Hide test code" : "Show test code for manual copy"}
-              </button>
-              {showCode && (
-                <div id="manual-host-code">
-                  <label htmlFor="manual-code-output">
-                    Private test code — select and copy manually
-                  </label>
-                  <textarea id="manual-code-output" readOnly value={hostCode} spellCheck={false} />
-                </div>
-              )}
-            </>
-          )}
-        </section>
-      ) : (
-        <section aria-label="Peer controls">
-          <label htmlFor="manual-code-input">Host test code</label>
-          <textarea
-            id="manual-code-input"
-            value={codeInput}
-            maxLength={1024}
+      <div className="manual-grid">
+        <div className="manual-controls">
+          <label htmlFor="manual-role">Test role</label>
+          <select
+            id="manual-role"
+            value={role}
             disabled={busy || running}
-            spellCheck={false}
-            autoComplete="off"
-            aria-invalid={invalidCode}
-            aria-describedby="manual-status"
             onChange={(event) => {
-              setCodeInput(event.target.value);
+              setRole(event.target.value as Role);
               setInvalidCode(false);
             }}
-          />
-          <button disabled={busy || running} onClick={() => void join()}>
-            Join test host
-          </button>
-          <button
-            disabled={busy || !rejoinCode.current}
-            onClick={() => void connect(rejoinCode.current!, true)}
           >
-            Leave and rejoin with retained code
-          </button>
+            <option value="host">Host</option>
+            <option value="participant">Peer</option>
+          </select>
+          {role === "host" ? (
+            <section aria-label="Host controls">
+              <p>
+                Save the initial synthetic sample to a test-only .peercanvas file. Hash that file
+                before and after the session; session edits are never auto-saved.
+              </p>
+              <button disabled={busy || running} onClick={() => void connect()}>
+                Save fixture and start host
+              </button>
+              {hostCode && (
+                <>
+                  <button
+                    disabled={busy}
+                    aria-expanded={showCode}
+                    aria-controls="manual-host-code"
+                    onClick={() => setShowCode(!showCode)}
+                  >
+                    {showCode ? "Hide test code" : "Show test code for manual copy"}
+                  </button>
+                  {showCode && (
+                    <div id="manual-host-code">
+                      <label htmlFor="manual-code-output">
+                        Private test code — select and copy manually
+                      </label>
+                      <textarea
+                        id="manual-code-output"
+                        readOnly
+                        value={hostCode}
+                        spellCheck={false}
+                      />
+                    </div>
+                  )}
+                </>
+              )}
+            </section>
+          ) : (
+            <section aria-label="Peer controls">
+              <label htmlFor="manual-code-input">Host test code</label>
+              <textarea
+                id="manual-code-input"
+                value={codeInput}
+                maxLength={1024}
+                disabled={busy || running}
+                spellCheck={false}
+                autoComplete="off"
+                aria-invalid={invalidCode}
+                aria-describedby="manual-status"
+                onChange={(event) => {
+                  setCodeInput(event.target.value);
+                  setInvalidCode(false);
+                }}
+              />
+              <button disabled={busy || running} onClick={() => void join()}>
+                Join test host
+              </button>
+              <button
+                disabled={busy || !rejoinCode.current}
+                onClick={() => void connect(rejoinCode.current!, true)}
+              >
+                Leave and rejoin with retained code
+              </button>
+            </section>
+          )}
+          <div className="manual-actions">
+            <button
+              disabled={
+                busy ||
+                !running ||
+                !report?.sha256 ||
+                (role === "participant" && report.status !== "ready")
+              }
+              onClick={() => void edit()}
+            >
+              Submit one synthetic edit (+24 x)
+            </button>
+            <button disabled={busy} onClick={() => void close()}>
+              Close session and clear code
+            </button>
+          </div>
+          <p id="manual-status" role="status">
+            {message}
+          </p>
+        </div>
+        <section className="manual-report" aria-label="Sanitized session report">
+          <h2>Sanitized report</h2>
+          <p>
+            Role/status, counts, canonical revision, SHA-256, ICE types/states and allowlisted error
+            codes only. Refreshes every second.
+          </p>
+          <pre>{report ? JSON.stringify(report, null, 2) : "No active session report."}</pre>
         </section>
-      )}
-      <div className="manual-actions">
-        <button
-          disabled={
-            busy ||
-            !running ||
-            !report?.sha256 ||
-            (role === "participant" && report.status !== "ready")
-          }
-          onClick={() => void edit()}
-        >
-          Submit one synthetic edit (+24 x)
-        </button>
-        <button disabled={busy} onClick={() => void close()}>
-          Close session and clear code
-        </button>
       </div>
-      <p id="manual-status" role="status">
-        {message}
-      </p>
-      <section aria-label="Sanitized session report">
-        <h2>Sanitized report</h2>
-        <p>
-          Role/status, counts, canonical revision, SHA-256, ICE types/states and allowlisted error
-          codes only. Refreshes every second.
-        </p>
-        <pre>{report ? JSON.stringify(report, null, 2) : "No active session report."}</pre>
-      </section>
     </main>
   );
 }

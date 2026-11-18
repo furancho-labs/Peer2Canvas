@@ -30,6 +30,25 @@ The workspace SHALL separate Shapes and Structure navigation and SHALL show supp
 - **WHEN** the user searches the Shapes panel
 - **THEN** approved matching shapes and expandable source/license information are available and insertion uses the existing shape command
 
+#### Scenario: Search finds no approved shape
+
+- **WHEN** a non-blank search matches no approved shape
+- **THEN** the panel shows localized text that includes the query as literal text, never as markup or a message template
+- **AND** a single status announcement reports the result count and query, without a second announcement from the visible message
+- **AND** activating Clear search (Borrar búsqueda) empties the search, restores the full list, and returns focus to the search field
+
+#### Scenario: Read a shape's provenance in the list
+
+- **WHEN** the Shapes panel lists an approved shape
+- **THEN** each row shows a decorative preview, the localized name and category, and the approved license identifier
+- **AND** the approved attribution, source, and redistribution rights remain in the row's expandable details without changing the insertion control
+
+#### Scenario: Scan and operate grouped inspector fields
+
+- **WHEN** a node is selected
+- **THEN** the existing appearance, text, position-and-size, and move controls appear in visually grouped, accessibly named sections with the destructive Delete action separated last
+- **AND** every field and button shows a visible keyboard focus indicator in light and dark themes, and grouping does not move focus or change Apply, input guards, error association, or draft behavior
+
 #### Scenario: Navigate structure
 
 - **WHEN** the user selects Structure

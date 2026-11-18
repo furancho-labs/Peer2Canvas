@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useI18n } from "../../i18n";
 import { shapeNodeType, shapePreviewDataUri } from "../../shapes/catalog";
 import {
@@ -27,7 +27,9 @@ const rights: Record<RightsPermission, string> = {
 export default function ShapesPanel({ disabled, onAddShape }: Props) {
   const { t, formatNumber } = useI18n();
   const [query, setQuery] = useState("");
+  const searchRef = useRef<HTMLInputElement>(null);
   const results = searchLocalizedShapes(insertable, query, t);
+  const trimmed = query.trim();
 
   return (
     <section className="pc-section pc-shape-library" aria-labelledby="shape-library-heading">
@@ -42,8 +44,12 @@ export default function ShapesPanel({ disabled, onAddShape }: Props) {
           type="search"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
+          ref={searchRef}
         />
       </div>
+      <p className="pc-hint pc-shape-status" role="status">
+        {trimmed ? t("editor.shapes.echo", { count: results.length, query: trimmed }) : ""}
+      </p>
       {results.length > 0 ? (
         <ul className="pc-shape-results" aria-label={t("editor.shapes.list")}>
           {results.map(({ entry, name, category }) => {
@@ -65,6 +71,7 @@ export default function ShapesPanel({ disabled, onAddShape }: Props) {
                   <span>
                     <strong>{name}</strong>
                     <small>{t("editor.shapes.meta", { category, version: entry.version })}</small>
+                    <small className="pc-shape-license">{entry.license.identifier}</small>
                   </span>
                 </button>
                 <details>
@@ -88,9 +95,23 @@ export default function ShapesPanel({ disabled, onAddShape }: Props) {
           })}
         </ul>
       ) : (
-        <p className="pc-empty" role="status">
-          {t("editor.shapes.noMatches")}
-        </p>
+        // Not a live region and no query text: the always-mounted status above is the single
+        // place that echoes the query and announces the result.
+        <div className="pc-empty">
+          <p>{t("editor.shapes.noMatches")}</p>
+          {query !== "" && (
+            <button
+              type="button"
+              className="pc-btn"
+              onClick={() => {
+                setQuery("");
+                searchRef.current?.focus();
+              }}
+            >
+              {t("editor.shapes.clear")}
+            </button>
+          )}
+        </div>
       )}
     </section>
   );

@@ -24,3 +24,5 @@ An isolated adapter keeps the canonical model independent from an external file 
 ## Risks and validation
 
 WP-06 was merged to `dev` in PR [#125](https://github.com/furancho-labs/Peer2Canvas/pull/125). The versioned first-party corpus and tests cover compressed and uncompressed input, bare and multiple pages, geometry, labels, edges, safe fragments, malformed and hostile XML/SVG, parser limits, and semantic round trips. Required PR checks passed; promotion to `main` remains pending. A local macOS bundle attempt failed while generating the configured app icon, so native file-dialog interaction is not yet verified.
+
+The local editor polish branch verified the macOS 26.7.1 draw.io export flow with a catalog rectangle. The Spanish review displayed one loss and required explicit consent. The native save panel required confirmation before replacing an existing disposable file. The confirmed write produced draw.io XML and preserved the editor revision. The Chromium review separately exercised Cancel, Escape, and keyboard navigation of the loss list.

@@ -30,6 +30,13 @@ The workspace SHALL separate Shapes and Structure navigation and SHALL show supp
 - **WHEN** the user searches the Shapes panel
 - **THEN** approved matching shapes and expandable source/license information are available and insertion uses the existing shape command
 
+#### Scenario: Search finds no approved shape
+
+- **WHEN** a non-blank search matches no approved shape
+- **THEN** the panel shows localized text that includes the query as literal text, never as markup or a message template
+- **AND** a single status announcement reports the result count and query, without a second announcement from the visible message
+- **AND** activating Clear search (Borrar búsqueda) empties the search, restores the full list, and returns focus to the search field
+
 #### Scenario: Read a shape's provenance in the list
 
 - **WHEN** the Shapes panel lists an approved shape

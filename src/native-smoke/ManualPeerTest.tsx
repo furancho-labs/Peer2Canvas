@@ -82,6 +82,29 @@ type Report = {
   ice: ReturnType<typeof readNativeIceDiagnostics>;
 };
 
+// Same readiness rules as before: busy, not running, no digest yet, or a peer that is not ready.
+function editBlockedReason({
+  busy,
+  running,
+  role,
+  report,
+}: {
+  busy: boolean;
+  running: boolean;
+  role: Role;
+  report: Report | null;
+}): string | null {
+  if (busy) return "Wait for the current action to finish.";
+  if (!running) return "Start or join a session first.";
+  if (role === "participant" && report?.status !== "ready") {
+    if (report?.status === "disconnected") return "The test session is disconnected.";
+    if (report?.status === "error") return "The test session failed.";
+    return "Wait until status is ready.";
+  }
+  if (!report?.sha256) return "Waiting for the first synchronized snapshot (SHA-256).";
+  return null;
+}
+
 function randomHex(bytes: number): string {
   return Array.from(crypto.getRandomValues(new Uint8Array(bytes)), (byte) =>
     byte.toString(16).padStart(2, "0"),
@@ -350,6 +373,9 @@ export default function ManualPeerTest() {
     }
   }
 
+  // One source for the disabled state and its explanation: null means editing is allowed.
+  const editReason = editBlockedReason({ busy, running, role, report });
+
   return (
     <main lang="en" className="manual-peer-test" data-native-manual="__PEERCANVAS_NATIVE_MANUAL__">
       <h1>Manual cross-device peer test</h1>
@@ -462,12 +488,8 @@ export default function ManualPeerTest() {
           )}
           <div className="manual-actions">
             <button
-              disabled={
-                busy ||
-                !running ||
-                !report?.sha256 ||
-                (role === "participant" && report.status !== "ready")
-              }
+              disabled={editReason !== null}
+              aria-describedby={editReason ? "manual-edit-reason" : undefined}
               onClick={() => void edit()}
             >
               Submit one synthetic edit (+24 x)
@@ -476,6 +498,11 @@ export default function ManualPeerTest() {
               Close session and clear code
             </button>
           </div>
+          {editReason && (
+            <p id="manual-edit-reason" className="manual-reason">
+              {editReason}
+            </p>
+          )}
           <p id="manual-status" role="status">
             {message}
           </p>

@@ -72,6 +72,11 @@
 .manual-steps strong {
   color: #78350f;
 }
+.manual-reason {
+  margin: 8px 0 0;
+  color: #475569;
+  font-size: 14px;
+}
 .manual-peer-test pre {
   padding: 16px;
   border: 1px solid #64748b;

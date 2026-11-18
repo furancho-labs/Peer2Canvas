@@ -98,13 +98,15 @@ function setSnapshot(
   session.snap = { ...session.snap, ...patch };
 }
 
+// Only setInterval is faked; crypto.subtle.digest resolves on a real thread, so wait in real time.
+const settle = () => new Promise<void>((resolve) => setTimeout(resolve, 25));
+
 async function tick() {
   await act(async () => {
-    await vi.advanceTimersByTimeAsync(1000);
+    vi.advanceTimersByTime(1000);
+    await settle();
   });
 }
-
-const realSetTimeout = globalThis.setTimeout;
 
 type ReportJson = {
   status: string;
@@ -123,9 +125,6 @@ function readReport(): ReportJson | null {
 async function settled(status: PeerSessionStatus, options: { digest?: boolean } = {}) {
   for (let attempt = 0; attempt < 20; attempt++) {
     await tick();
-    await act(async () => {
-      await new Promise<void>((resolve) => realSetTimeout(resolve, 5));
-    });
     const report = readReport();
     if (report?.status === status && (!options.digest || report.sha256)) return report;
   }
@@ -135,7 +134,7 @@ async function settled(status: PeerSessionStatus, options: { digest?: boolean } 
 async function click(name: string | RegExp) {
   await act(async () => {
     fireEvent.click(screen.getByRole("button", { name }));
-    await vi.advanceTimersByTimeAsync(0);
+    await settle();
   });
 }
 
@@ -154,7 +153,7 @@ async function joinAsPeer() {
 }
 
 beforeEach(() => {
-  vi.useFakeTimers();
+  vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] });
   h.sessions.length = 0;
   h.transports.length = 0;
   h.start = null;
@@ -254,6 +253,94 @@ describe("ManualPeerTest guidance and role routing", () => {
     expect((screen.getByLabelText("Host test code") as HTMLTextAreaElement).value).toBe("");
     expect(container.textContent).not.toContain(PASSWORD);
     expect(container.textContent).not.toContain(ROOM);
+  });
+});
+
+describe("ManualPeerTest edit availability", () => {
+  const editButton = () =>
+    screen.getByRole("button", {
+      name: /Submit one synthetic edit/,
+    }) as HTMLButtonElement;
+  const reason = () => document.getElementById("manual-edit-reason");
+
+  function expectReason(text: string) {
+    expect(editButton().disabled).toBe(true);
+    expect(document.querySelectorAll("#manual-edit-reason")).toHaveLength(1);
+    expect(reason()?.textContent).toBe(text);
+    expect(editButton().getAttribute("aria-describedby")).toBe("manual-edit-reason");
+  }
+
+  it("explains idle state before any session", () => {
+    render(<ManualPeerTest />);
+    expectReason("Start or join a session first.");
+  });
+
+  it("explains busy state while an action runs", async () => {
+    let finish: () => void = () => {};
+    h.start = () =>
+      new Promise<void>((resolve) => {
+        finish = resolve;
+      });
+    render(<ManualPeerTest />);
+    await joinAsPeer();
+    expectReason("Wait for the current action to finish.");
+    await act(async () => {
+      finish();
+      await settle();
+    });
+  });
+
+  it("explains waiting, disconnected/error and digest states for a peer", async () => {
+    render(<ManualPeerTest />);
+    await joinAsPeer();
+    setSnapshot(latest(), { status: "syncing" });
+    await settled(latest().snap.status, {
+      digest: Boolean(latest().snap.model),
+    });
+    expectReason("Wait until status is ready.");
+
+    setSnapshot(latest(), { status: "ready" });
+    await settled(latest().snap.status, {
+      digest: Boolean(latest().snap.model),
+    });
+    expectReason("Waiting for the first synchronized snapshot (SHA-256).");
+
+    setSnapshot(latest(), {
+      status: "disconnected",
+      error: "The host disconnected.",
+    });
+    await settled(latest().snap.status, {
+      digest: Boolean(latest().snap.model),
+    });
+    expectReason("The test session is disconnected.");
+    setSnapshot(latest(), { status: "error", error: "x" });
+    await settled(latest().snap.status, {
+      digest: Boolean(latest().snap.model),
+    });
+    expect(reason()?.textContent).toContain("session failed");
+  });
+
+  it("enables editing and removes the explanation once the peer is ready with a digest", async () => {
+    render(<ManualPeerTest />);
+    await joinAsPeer();
+    setSnapshot(latest(), { status: "ready", model: createSample() });
+    await settled(latest().snap.status, {
+      digest: Boolean(latest().snap.model),
+    });
+    expect(editButton().disabled).toBe(false);
+    expect(editButton().hasAttribute("aria-describedby")).toBe(false);
+    expect(reason()).toBeNull();
+  });
+
+  it("keeps the existing host rule: enabled once the digest exists, digest reason before", async () => {
+    render(<ManualPeerTest />);
+    await click("Save fixture and start host");
+    expectReason("Waiting for the first synchronized snapshot (SHA-256).");
+    await settled(latest().snap.status, {
+      digest: Boolean(latest().snap.model),
+    });
+    expect(editButton().disabled).toBe(false);
+    expect(reason()).toBeNull();
   });
 });
 

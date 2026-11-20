@@ -84,3 +84,13 @@ The initial PR #132 CI run failed its production-isolation check because it sear
 - Work package: WP-13/#93; children #96 (contracts), #95 (appearance), #100 (localization), #101 (platform integration).
 - Data decisions: ADR-0003, ADR-0006, ADR-0007. Risks: R-14, R-19, R-20 and native evidence risk R-11.
 - The maintainer requested syncing Santiago's branch with current `dev` and merging PR #132 there after CI passed. The merge is complete; no promotion to `main` is authorized here.
+
+## Editor UI polish
+
+The local `feature/editor-ui-polish` branch from `dev` (`3f29497`) improves the catalog rows and no-result search, inspector grouping, and draw.io review. Evidence is recorded for WP-04/#25–#26, WP-05/#27–#29, WP-06/#32–#34, and WP-13/#96. The updated workspace and draw.io OpenSpec scenarios cover interactive focus, localized loss consent, and keyboard review.
+
+- Chromium browser captures cover catalog attribution, empty search, the inspector, and a long loss review at 1440, 1100, 900, and 600 CSS pixels in English/Spanish and Light/Dark. Keyboard checks cover clearing a literal long query, inspector Apply and Undo, and loss-list focus, scrolling, Cancel, Escape, and focus return. The scoped axe contrast check found no violations. Computed ratios for the arrow glyphs and loss-list text were at least 8.0:1 in both themes.
+- macOS 26.7.1 arm64 / WebKit 21624.5.1.11.3 displayed the Spanish lossy-export review and the native destination replacement prompt for a disposable existing file. Confirming replacement wrote valid draw.io XML and left the in-memory diagram at revision 2.
+- Local checks include `npm run typecheck`, `npm run lint`, `npm run format:check`, `npm test`, `npm run build`, and `openspec validate --all --strict --no-interactive`. The production bundle keeps the existing large-chunk warning.
+
+An intermittent Weave `getTransformer` exception occurred during 600 px browser interactions on both the baseline and the polished branch. Track renderer initialization separately. Human Spanish review and the remaining native preference checks stay open under WP-13.
